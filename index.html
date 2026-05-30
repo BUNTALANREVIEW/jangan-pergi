@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One Last Sorry</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #fff;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 24%),
+        radial-gradient(circle at 80% 75%, rgba(148, 163, 184, 0.18), transparent 30%),
+        linear-gradient(135deg, #030712 0%, #0f172a 52%, #020617 100%);
+      cursor: crosshair;
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.08;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    .glow-line {
+      position: fixed;
+      inset: auto 0 0;
+      height: 44vh;
+      pointer-events: none;
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.08), transparent);
+    }
+
+    .music-control {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px);
+      color: #fff;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: 0.35s ease;
+    }
+
+    .music-control:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      transition: 1s ease;
+    }
+
+    .intro.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.04);
+    }
+
+    .intro-content {
+      max-width: 720px;
+      animation: fadeUp 1.4s ease forwards;
+    }
+
+    .intro .small {
+      margin-bottom: 18px;
+      color: rgba(255, 255, 255, 0.52);
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    .intro h1 {
+      margin-bottom: 20px;
+      font-size: clamp(42px, 8vw, 88px);
+      font-weight: 400;
+      letter-spacing: -2px;
+    }
+
+    .intro p {
+      margin: 0 auto 30px;
+      max-width: 580px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: clamp(16px, 2.5vw, 21px);
+      line-height: 1.8;
+    }
+
+    .start-btn {
+      border: none;
+      padding: 15px 28px;
+      border-radius: 999px;
+      background: #fff;
+      color: #020617;
+      font-size: 14px;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      transition: 0.35s ease;
+      box-shadow: 0 16px 40px rgba(255, 255, 255, 0.14);
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 60px rgba(255, 255, 255, 0.24);
+    }
+
+    .main {
+      position: relative;
+      min-height: 100vh;
+      opacity: 0;
+      pointer-events: none;
+      transition: 1.2s ease;
+    }
+
+    .main.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .title {
+      position: fixed;
+      top: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      width: min(90%, 790px);
+      text-align: center;
+    }
+
+    .title h2 {
+      margin-bottom: 12px;
+      font-size: clamp(28px, 5vw, 54px);
+      font-weight: 400;
+    }
+
+    .title p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .memory {
+      position: absolute;
+      z-index: 6;
+      width: 118px;
+      height: 78px;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
+        rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(9px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transform: rotate(var(--rotate));
+      animation: drift 7s ease-in-out infinite;
+      transition: opacity 0.7s ease, transform 0.7s ease, filter 0.35s ease;
+    }
+
+    .memory::before {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 15px;
+      width: 58px;
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 15px 0 rgba(255, 255, 255, 0.32), 0 30px 0 rgba(255, 255, 255, 0.22);
+    }
+
+    .memory::after {
+      content: '';
+      position: absolute;
+      right: 13px;
+      bottom: 11px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.38);
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .memory:hover {
+      filter: brightness(1.28);
+      transform: rotate(var(--rotate)) translateY(-8px) scale(1.05);
+    }
+
+    .memory.clicked {
+      opacity: 0;
+      pointer-events: none;
+      transform: rotate(var(--rotate)) translateY(-36px) scale(0.7);
+    }
+
+    @keyframes drift {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -22px; }
+    }
+
+    .message {
+      position: fixed;
+      left: 50%;
+      bottom: 70px;
+      z-index: 12;
+      width: min(88%, 700px);
+      transform: translateX(-50%) translateY(30px);
+      padding: 22px 26px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.09);
+      backdrop-filter: blur(16px);
+      color: rgba(255, 255, 255, 0.88);
+      text-align: center;
+      font-size: clamp(16px, 2.6vw, 22px);
+      line-height: 1.7;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.6s ease;
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .progress {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      z-index: 9;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.46);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .letter-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(2, 6, 23, 0.7);
+      backdrop-filter: blur(16px);
+    }
+
+    .letter-overlay.show {
+      display: flex;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .letter {
+      width: min(92vw, 760px);
+      max-height: 86vh;
+      overflow: auto;
+      padding: clamp(26px, 5vw, 48px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    .letter h3 {
+      margin-bottom: 18px;
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 400;
+    }
+
+    .letter p {
+      margin-bottom: 18px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: clamp(16px, 2.4vw, 19px);
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
+    .close-letter {
+      margin-top: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 13px 22px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #020617;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .close-letter:hover {
+      transform: translateY(-2px);
+    }
+
+    .ending {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      background: #020617;
+    }
+
+    .ending.show {
+      display: flex;
+      animation: fadeIn 1.2s ease forwards;
+    }
+
+    .ending h4 {
+      max-width: 760px;
+      font-size: clamp(24px, 5vw, 52px);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .music-control {
+        top: 16px;
+        right: 16px;
+        padding: 10px 13px;
+        font-size: 12px;
+      }
+
+      .title {
+        top: 86px;
+      }
+
+      .memory {
+        width: 94px;
+        height: 64px;
+      }
+
+      .message {
+        bottom: 44px;
+      }
+
+      .progress {
+        bottom: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="glow-line"></div>
+
+  <!-- Ganti src ini dengan file lagu kamu, contoh: lagu.mp3 -->
+  <audio id="song" loop autoplay>
+    <source src="lagu.mp3" type="audio/mpeg" />
+  </audio>
+
+  <button class="music-control" id="musicBtn">♫ Lagu otomatis</button>
+
+  <section class="intro" id="intro">
+    <div class="intro-content">
+      <div class="small">a quiet goodbye</div>
+      <h1>One Last Sorry</h1>
+      <p>
+        Aku nggak ingin datang dengan banyak alasan.
+        Aku cuma ingin menyampaikan beberapa hal yang harusnya aku ucapkan lebih dulu.
+      </p>
+      <button class="start-btn" id="startBtn">Buka perlahan</button>
+    </div>
+  </section>
+
+  <main class="main" id="main">
+    <div class="title">
+      <h2>Potongan surat yang belum sempat selesai.</h2>
+      <p>Klik tiap potongan surat yang melayang. Satu per satu, isinya adalah hal yang ingin aku akui tanpa membela diri.</p>
+    </div>
+
+    <button class="memory" style="left: 10%; top: 38%; --rotate: -10deg; animation-delay: 0s;"></button>
+    <button class="memory" style="left: 73%; top: 33%; --rotate: 8deg; animation-delay: 0.8s;"></button>
+    <button class="memory" style="left: 23%; top: 68%; --rotate: 12deg; animation-delay: 1.5s;"></button>
+    <button class="memory" style="left: 62%; top: 70%; --rotate: -8deg; animation-delay: 2.1s;"></button>
+    <button class="memory" style="left: 43%; top: 49%; --rotate: 4deg; animation-delay: 2.8s;"></button>
+
+    <div class="message" id="message"></div>
+    <div class="progress" id="progress">0 / 5 dibuka</div>
+  </main>
+
+  <section class="letter-overlay" id="letterOverlay">
+    <div class="letter">
+      <h3>Untuk kamu, terakhir kalinya.</h3>
+      <p id="letterText"></p>
+      <button class="close-letter" id="closeLetter">Selesai</button>
+    </div>
+  </section>
+
+  <section class="ending" id="ending">
+    <h4>Aku benar-benar minta maaf.<br />Semoga setelah ini, kamu menemukan tenang yang lebih baik.</h4>
+  </section>
+
+  <script>
+    const intro = document.getElementById('intro');
+    const main = document.getElementById('main');
+    const startBtn = document.getElementById('startBtn');
+    const musicBtn = document.getElementById('musicBtn');
+    const song = document.getElementById('song');
+    const messageBox = document.getElementById('message');
+    const memories = document.querySelectorAll('.memory');
+    const progress = document.getElementById('progress');
+    const letterOverlay = document.getElementById('letterOverlay');
+    const letterText = document.getElementById('letterText');
+    const closeLetter = document.getElementById('closeLetter');
+    const ending = document.getElementById('ending');
+
+    const messages = [
+      'Maaf karena aku belum bisa benar-benar mengerti luka yang kamu bawa. Aku sering melihat reaksimu sebagai masalah, padahal mungkin itu adalah cara hatimu bertahan.',
+      'Maaf karena aku terlalu memburu-buru kamu untuk lepas dari trauma itu. Aku baru sadar, niatku yang ingin semuanya membaik justru terasa seperti aku tidak memahami kamu.',
+      'Maaf karena aku mengulang kesalahan yang sama. Aku tahu kata maaf jadi terasa kecil kalau setelahnya aku tetap membuatmu terluka lagi.',
+      'Sekarang aku mengerti bahwa hubungan bukan cuma tentang cinta. Ada dua kepala, dua hati, dua luka, dan dua cara bertahan yang harus sama-sama dipahami.',
+      'Aku nggak menulis ini untuk memaksa kamu kembali. Aku hanya ingin kamu tahu bahwa akhirnya aku sadar: mencintai seseorang juga berarti sabar memahami proses sembuhnya, bukan memaksa dia cepat baik-baik saja.'
+    ];
+
+    const finalLetter = `Aku nggak tahu apakah tulisan ini masih pantas kamu baca sampai selesai.
+
+Tapi untuk terakhir kalinya, aku ingin minta maaf dengan cara yang lebih tenang, lebih jujur, dan tanpa membela diriku sendiri.
+
+Aku sadar, salah satu kesalahanku adalah aku belum bisa benar-benar mengerti trauma yang kamu punya. Aku belum cukup peka untuk memahami bahwa anxiety kamu bukan sesuatu yang bisa dianggap berlebihan, bukan sesuatu yang bisa selesai hanya karena aku bilang, “tenang aja”.
+
+Aku juga sadar, aku pernah terlalu memburu-buru kamu untuk lepas dari rasa trauma itu. Mungkin di pikiranku, aku hanya ingin hubungan ini terasa lebih ringan, lebih bebas, dan tidak terus dibayangi luka lama. Tapi sekarang aku paham, caraku waktu itu salah.
+
+Niatku mungkin ingin semuanya membaik, tapi yang sampai ke kamu justru bisa terasa seperti tekanan. Seolah-olah aku meminta kamu cepat sembuh. Seolah-olah aku tidak sabar dengan prosesmu. Seolah-olah luka yang kamu bawa adalah sesuatu yang harus segera kamu tinggalkan demi hubungan ini.
+
+Aku sering gagal membaca rasa takutmu. Aku sering terlambat sadar bahwa di balik sikapmu, di balik diam, marah, atau cemasmu, mungkin ada luka lama yang sedang berusaha kamu lindungi.
+
+Dan yang paling aku sesali, aku mengulang kesalahan yang itu-itu lagi.
+
+Aku tahu kata maaf bisa terdengar kosong kalau setelahnya aku tetap membuat luka yang sama. Aku tahu mungkin kamu lelah, bukan karena kamu tidak sayang, tapi karena kamu terus berharap aku mengerti tanpa harus selalu dijelaskan dari awal lagi.
+
+Dulu aku sempat berpikir, kenapa kita tidak bisa menjalani hubungan ini dengan lebih lepas? Kenapa kita tidak bisa sama-sama melepaskan masa lalu ketika sudah ada di hubungan yang baru?
+
+Tapi sekarang aku paham.
+
+Melepas trauma tidak sesederhana masuk ke hubungan baru. Luka tidak langsung hilang hanya karena ada orang yang mencintai kita. Kadang, justru di dalam hubungan, luka itu muncul lagi karena ada rasa takut kehilangan, rasa takut disakiti, atau rasa takut kejadian yang sama terulang kembali.
+
+Sekarang aku semakin mengerti bahwa hubungan bukan cuma tentang saling cinta.
+
+Hubungan juga tentang dua kepala yang mencoba saling mendengar. Dua hati yang punya cara bertahan masing-masing. Dua manusia yang harus belajar memahami hal-hal yang bahkan kadang sulit dijelaskan oleh pasangannya sendiri.
+
+Aku minta maaf karena aku belum bisa menjadi orang yang cukup sabar untuk memahami bagian itu dari kamu.
+
+Maaf karena aku membuat kamu merasa tidak dipahami ketika kamu justru sedang butuh dimengerti. Maaf karena aku pernah membuat proses sembuhmu terasa seperti tuntutan, bukan ruang aman.
+
+Maaf karena aku pernah membuat kamu merasa tidak dimengerti.
+Maaf karena aku pernah membuat rasa cemasmu terasa seperti beban.
+Maaf karena aku terlambat sadar bahwa mencintai kamu seharusnya juga berarti belajar memahami lukamu, bukan hanya menikmati baikmu.
+
+Aku tidak menulis ini untuk memaksa kamu kembali.
+Aku juga tidak ingin membuat kamu merasa bersalah karena memilih pergi.
+
+Aku cuma ingin kamu tahu bahwa sekarang aku paham, meskipun mungkin pemahaman ini datang terlambat.
+
+Terima kasih karena pernah bertahan sejauh itu.
+Terima kasih karena pernah mencoba menjelaskan hal-hal yang mungkin berat untuk kamu jelaskan.
+Terima kasih karena pernah mencintaiku dengan caramu.
+
+Kalau setelah ini jalan kita memang harus berbeda, aku akan belajar menerima itu.
+
+Tapi dari hatiku yang paling jujur,
+aku benar-benar minta maaf.`;
+
+    let openedCount = 0;
+    let typingIndex = 0;
+    let typingTimer = null;
+
+    function playSong() {
+      song.volume = 0.72;
+      song.play()
+        .then(() => {
+          musicBtn.textContent = '♫ Lagu diputar';
+        })
+        .catch(() => {
+          musicBtn.textContent = '♫ Klik jika lagu belum bunyi';
+        });
+    }
+
+    window.addEventListener('load', () => {
+      playSong();
+    });
+
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.classList.add('show');
+      clearTimeout(messageBox.hideTimer);
+      messageBox.hideTimer = setTimeout(() => {
+        messageBox.classList.remove('show');
+      }, 8500);
+    }
+
+    function typeLetter() {
+      letterText.textContent = '';
+      typingIndex = 0;
+      clearInterval(typingTimer);
+      typingTimer = setInterval(() => {
+        letterText.textContent += finalLetter.charAt(typingIndex);
+        typingIndex++;
+        if (typingIndex >= finalLetter.length) {
+          clearInterval(typingTimer);
+        }
+      }, 45);
+    }
+
+    function showLetter() {
+      setTimeout(() => {
+        letterOverlay.classList.add('show');
+        typeLetter();
+      }, 9000);
+    }
+
+    startBtn.addEventListener('click', () => {
+      intro.classList.add('hidden');
+      main.classList.add('show');
+      playSong();
+    });
+
+    musicBtn.addEventListener('click', () => {
+      if (song.paused) {
+        playSong();
+      } else {
+        song.pause();
+        musicBtn.textContent = '♫ Putar lagu';
+      }
+    });
+
+    memories.forEach((memory, index) => {
+      memory.addEventListener('click', () => {
+        if (memory.classList.contains('clicked')) return;
+        memory.classList.add('clicked');
+        showMessage(messages[index]);
+        openedCount++;
+        progress.textContent = `${openedCount} / ${memories.length} dibuka`;
+
+        if (openedCount === memories.length) {
+          showLetter();
+        }
+      });
+    });
+
+    closeLetter.addEventListener('click', () => {
+      letterOverlay.classList.remove('show');
+      ending.classList.add('show');
+    });
+  </script>
+</body>
+</html>
