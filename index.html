@@ -2,583 +2,1131 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>One Last Sorry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ruang Kita</title>
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --dark: #040609;
+      --dark-2: #0b0f15;
+      --white: #f7f7f5;
+      --soft: rgba(247,247,245,.78);
+      --muted: rgba(247,247,245,.48);
+      --line: rgba(255,255,255,.13);
+      --glass: rgba(255,255,255,.06);
+      --glass-2: rgba(255,255,255,.1);
+      --shadow: rgba(0,0,0,.48);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    body {
-      min-height: 100vh;
+    html, body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      font-family: Georgia, 'Times New Roman', serif;
-      color: #fff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--white);
       background:
-        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 24%),
-        radial-gradient(circle at 80% 75%, rgba(148, 163, 184, 0.18), transparent 30%),
-        linear-gradient(135deg, #030712 0%, #0f172a 52%, #020617 100%);
-      cursor: crosshair;
+        radial-gradient(circle at 50% 16%, rgba(255,255,255,.12), transparent 32%),
+        radial-gradient(circle at 14% 76%, rgba(255,255,255,.06), transparent 34%),
+        linear-gradient(180deg, #05070b 0%, #101721 52%, #05070b 100%);
+      user-select: none;
     }
 
-    .grain {
+    body::before {
+      content: "";
       position: fixed;
       inset: 0;
+      z-index: 1;
       pointer-events: none;
-      opacity: 0.08;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,.035), transparent 28%),
+        radial-gradient(circle at var(--mx, 50%) var(--my, 45%), rgba(255,255,255,.08), transparent 22%);
+      opacity: .9;
     }
 
-    .glow-line {
+    canvas#bg {
       position: fixed;
-      inset: auto 0 0;
-      height: 44vh;
+      inset: 0;
+      z-index: 0;
       pointer-events: none;
-      background: linear-gradient(to top, rgba(255, 255, 255, 0.08), transparent);
     }
 
-    .music-control {
+    button {
+      border: 0;
+      outline: 0;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .glass {
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(255,255,255,.035));
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow: 0 28px 86px var(--shadow);
+    }
+
+    .topbar {
       position: fixed;
-      top: 22px;
-      right: 22px;
-      z-index: 20;
+      top: calc(16px + var(--safe-top));
+      left: 18px;
+      right: 18px;
+      z-index: 80;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .brand, .music-btn {
+      pointer-events: auto;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
       gap: 10px;
-      padding: 12px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(14px);
-      color: #fff;
-      font-size: 13px;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      transition: 0.35s ease;
+      padding: 10px 14px;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .35px;
     }
 
-    .music-control:hover {
-      background: rgba(255, 255, 255, 0.16);
-      transform: translateY(-2px);
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 0 24px rgba(255,255,255,.72);
     }
 
-    .intro {
+    .music-btn { color: var(--white); transition: .22s ease; white-space: nowrap; }
+    .music-btn:hover, .primary-btn:hover, .restart-btn:hover { transform: translateY(-2px); opacity: .94; }
+
+    .progress-pill {
+      position: fixed;
+      left: 50%;
+      top: calc(16px + var(--safe-top));
+      z-index: 82;
+      width: min(50vw, 340px);
+      transform: translateX(-50%);
+      border-radius: 999px;
+      padding: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .35s ease;
+    }
+
+    .progress-pill.show { opacity: 1; }
+    .progress-track { height: 7px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+    .progress-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c9c9c4, #ffffff); box-shadow: 0 0 22px rgba(255,255,255,.3); transition: width .45s ease; }
+    .progress-text { margin-top: 7px; text-align: center; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: 1.3px; text-transform: uppercase; }
+
+    .screen {
       position: fixed;
       inset: 0;
       z-index: 10;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      text-align: center;
-      transition: 1s ease;
-    }
-
-    .intro.hidden {
+      display: grid;
+      place-items: center;
+      padding: calc(92px + var(--safe-top)) 22px calc(28px + var(--safe-bottom));
       opacity: 0;
       pointer-events: none;
-      transform: scale(1.04);
+      transform: scale(1.01);
+      transition: opacity .55s ease, transform .55s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .intro-content {
-      max-width: 720px;
-      animation: fadeUp 1.4s ease forwards;
-    }
+    .screen.show { opacity: 1; pointer-events: auto; transform: scale(1); }
 
-    .intro .small {
-      margin-bottom: 18px;
-      color: rgba(255, 255, 255, 0.52);
-      font-size: 13px;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-    }
-
-    .intro h1 {
-      margin-bottom: 20px;
-      font-size: clamp(42px, 8vw, 88px);
-      font-weight: 400;
-      letter-spacing: -2px;
-    }
-
-    .intro p {
-      margin: 0 auto 30px;
-      max-width: 580px;
-      color: rgba(255, 255, 255, 0.76);
-      font-size: clamp(16px, 2.5vw, 21px);
-      line-height: 1.8;
-    }
-
-    .start-btn {
-      border: none;
-      padding: 15px 28px;
-      border-radius: 999px;
-      background: #fff;
-      color: #020617;
-      font-size: 14px;
-      letter-spacing: 0.8px;
-      cursor: pointer;
-      transition: 0.35s ease;
-      box-shadow: 0 16px 40px rgba(255, 255, 255, 0.14);
-    }
-
-    .start-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 22px 60px rgba(255, 255, 255, 0.24);
-    }
-
-    .main {
-      position: relative;
-      min-height: 100vh;
-      opacity: 0;
-      pointer-events: none;
-      transition: 1.2s ease;
-    }
-
-    .main.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .title {
-      position: fixed;
-      top: 48px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 5;
-      width: min(90%, 790px);
-      text-align: center;
-    }
-
-    .title h2 {
-      margin-bottom: 12px;
-      font-size: clamp(28px, 5vw, 54px);
-      font-weight: 400;
-    }
-
-    .title p {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .memory {
-      position: absolute;
-      z-index: 6;
-      width: 118px;
-      height: 78px;
-      border: 1px solid rgba(255, 255, 255, 0.26);
-      border-radius: 14px;
-      background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
-        rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(9px);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-      cursor: pointer;
-      transform: rotate(var(--rotate));
-      animation: drift 7s ease-in-out infinite;
-      transition: opacity 0.7s ease, transform 0.7s ease, filter 0.35s ease;
-    }
-
-    .memory::before {
-      content: '';
-      position: absolute;
-      top: 13px;
-      left: 15px;
-      width: 58px;
-      height: 2px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.5);
-      box-shadow: 0 15px 0 rgba(255, 255, 255, 0.32), 0 30px 0 rgba(255, 255, 255, 0.22);
-    }
-
-    .memory::after {
-      content: '';
-      position: absolute;
-      right: 13px;
-      bottom: 11px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.38);
-      background: rgba(255, 255, 255, 0.16);
-    }
-
-    .memory:hover {
-      filter: brightness(1.28);
-      transform: rotate(var(--rotate)) translateY(-8px) scale(1.05);
-    }
-
-    .memory.clicked {
-      opacity: 0;
-      pointer-events: none;
-      transform: rotate(var(--rotate)) translateY(-36px) scale(0.7);
-    }
-
-    @keyframes drift {
-      0%, 100% { translate: 0 0; }
-      50% { translate: 0 -22px; }
-    }
-
-    .message {
-      position: fixed;
-      left: 50%;
-      bottom: 70px;
-      z-index: 12;
-      width: min(88%, 700px);
-      transform: translateX(-50%) translateY(30px);
-      padding: 22px 26px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.09);
-      backdrop-filter: blur(16px);
-      color: rgba(255, 255, 255, 0.88);
-      text-align: center;
-      font-size: clamp(16px, 2.6vw, 22px);
-      line-height: 1.7;
-      opacity: 0;
-      pointer-events: none;
-      transition: 0.6s ease;
-    }
-
-    .message.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .progress {
-      position: fixed;
-      left: 50%;
-      bottom: 26px;
-      z-index: 9;
-      transform: translateX(-50%);
-      color: rgba(255, 255, 255, 0.46);
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    .letter-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 22px;
-      background: rgba(2, 6, 23, 0.7);
-      backdrop-filter: blur(16px);
-    }
-
-    .letter-overlay.show {
-      display: flex;
-      animation: fadeIn 0.8s ease forwards;
-    }
-
-    .letter {
+    .panel, .hold-card, .final-card {
       width: min(92vw, 760px);
-      max-height: 86vh;
-      overflow: auto;
-      padding: clamp(26px, 5vw, 48px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 30px;
-      background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      border-radius: 34px;
+      padding: clamp(26px, 5vw, 46px);
+      text-align: center;
+      animation: rise .75s ease both;
     }
 
-    .letter h3 {
-      margin-bottom: 18px;
-      font-size: clamp(26px, 4vw, 42px);
-      font-weight: 400;
+    .eyebrow {
+      margin-bottom: 16px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 3.2px;
+      text-transform: uppercase;
     }
 
-    .letter p {
-      margin-bottom: 18px;
-      color: rgba(255, 255, 255, 0.82);
-      font-size: clamp(16px, 2.4vw, 19px);
-      line-height: 1.9;
-      white-space: pre-line;
-    }
+    h1, h2 { letter-spacing: -2.2px; line-height: 1.05; font-weight: 950; }
+    h1 { margin-bottom: 20px; font-size: clamp(40px, 8vw, 82px); }
+    h2 { margin-bottom: 18px; font-size: clamp(34px, 6.2vw, 66px); }
 
-    .close-letter {
-      margin-top: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 13px 22px;
+    p { color: var(--soft); font-size: clamp(15px, 2.35vw, 18px); line-height: 1.74; white-space: pre-line; }
+    .panel p, .hold-card p, .final-note { max-width: 620px; margin: 0 auto; }
+
+    .primary-btn, .restart-btn {
+      margin-top: 28px;
+      min-width: 154px;
+      min-height: 50px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.92);
-      color: #020617;
-      cursor: pointer;
-      transition: 0.3s ease;
+      padding: 0 24px;
+      color: #080b10;
+      background: linear-gradient(135deg, #ffffff, #d9d9d3);
+      font-size: 14px;
+      font-weight: 900;
+      transition: .22s ease;
+      box-shadow: 0 18px 52px rgba(255,255,255,.12);
     }
 
-    .close-letter:hover {
-      transform: translateY(-2px);
-    }
-
-    .ending {
+    .workspace {
       position: fixed;
       inset: 0;
-      z-index: 40;
-      display: none;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: calc(105px + var(--safe-top)) 18px calc(72px + var(--safe-bottom));
+      opacity: 0;
+      pointer-events: none;
+      transition: .45s ease;
+      overflow: hidden;
+    }
+
+    .workspace.show { opacity: 1; pointer-events: auto; }
+
+    .fog-wrap {
+      position: relative;
+      width: min(92vw, 820px);
+      height: min(68vh, 540px);
+      min-height: 420px;
+      border-radius: 38px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .fog-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 29px;
+      border: 1px solid rgba(255,255,255,.08);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .fog-title {
+      position: absolute;
+      top: 22px;
+      left: 24px;
+      z-index: 6;
+      color: rgba(255,255,255,.78);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: 2.3px;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .fog-subtitle {
+      position: absolute;
+      top: 44px;
+      left: 24px;
+      max-width: 320px;
+      z-index: 6;
+      color: rgba(255,255,255,.44);
+      font-size: 11px;
+      line-height: 1.5;
+      font-weight: 720;
+      pointer-events: none;
+    }
+
+    .truth-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      padding: 96px 34px 34px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.1), transparent 42%),
+        linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .truth-layer.visible {
+      opacity: 1;
+    }
+
+    .truth-card {
+      width: min(100%, 610px);
+      border-radius: 30px;
+      padding: 26px 24px;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      box-shadow: inset 0 0 42px rgba(255,255,255,.025);
+    }
+
+    .truth-kicker {
+      margin-bottom: 12px;
+      color: rgba(255,255,255,.45);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 2.1px;
+      text-transform: uppercase;
+    }
+
+    .truth-text {
+      color: rgba(255,255,255,.92);
+      font-size: clamp(16px, 2.6vw, 24px);
+      line-height: 1.58;
+      font-weight: 760;
+      letter-spacing: -.4px;
+      white-space: pre-line;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+
+    .truth-text.fade { opacity: 0; transform: translateY(8px); }
+
+    #fogCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .fog-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      z-index: 7;
+      transform: translateX(-50%);
+      width: min(calc(100% - 36px), 560px);
+      border-radius: 999px;
+      padding: 12px 16px;
+      text-align: center;
+      color: rgba(255,255,255,.72);
+      font-size: 10px;
+      line-height: 1.35;
+      font-weight: 900;
+      letter-spacing: 1.25px;
+      text-transform: uppercase;
+      pointer-events: none;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+
+    .fog-hint.hide { opacity: 0; transform: translateX(-50%) translateY(12px); }
+
+    .mini-progress {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 76px;
+      z-index: 7;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.09);
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .mini-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: rgba(255,255,255,.86);
+      transition: width .22s ease;
+    }
+
+    .continue-btn {
+      position: absolute;
+      right: 24px;
+      bottom: 22px;
+      z-index: 8;
+      min-height: 44px;
+      border-radius: 999px;
+      padding: 0 18px;
+      color: #080b10;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 950;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: .28s ease;
+    }
+
+    .continue-btn.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    .message-slot {
+      width: min(91vw, 720px);
+      min-height: 92px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      flex: 0 0 auto;
+    }
+
+    .message-slot.compact { width: 100%; min-height: 0; margin-top: 20px; }
+    .message-slot.letter-slot { position: fixed; left: 50%; top: calc(112px + var(--safe-top)); z-index: 42; transform: translateX(-50%); min-height: 88px; }
+
+    .toast {
+      position: static;
+      z-index: 1;
+      width: 100%;
       text-align: center;
-      background: #020617;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity .35s ease, transform .35s ease;
     }
 
-    .ending.show {
-      display: flex;
-      animation: fadeIn 1.2s ease forwards;
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-inner { display: block; width: 100%; border-radius: 28px; padding: 17px 22px; }
+    .toast-text { color: var(--white); font-size: clamp(15px, 2.5vw, 20px); line-height: 1.5; font-weight: 820; letter-spacing: -.3px; white-space: pre-line; }
+
+    .hold-card { width: min(92vw, 560px); }
+    .pulse-orb { width: 92px; height: 92px; margin: 0 auto 22px; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: radial-gradient(circle, rgba(255,255,255,.22), rgba(255,255,255,.035)); box-shadow: 0 0 70px rgba(255,255,255,.08); transition: .4s ease; }
+    .pulse-orb.on { background: radial-gradient(circle, rgba(255,255,255,.98), rgba(255,255,255,.16)); box-shadow: 0 0 86px rgba(255,255,255,.42), 0 0 170px rgba(255,255,255,.12); }
+
+    .hold-box { position: relative; width: min(100%, 380px); height: 56px; margin: 24px auto 0; border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,.17); background: rgba(255,255,255,.075); }
+    .hold-fill { position: absolute; inset: 0 auto 0 0; width: 0%; border-radius: inherit; background: linear-gradient(90deg, #d7d7d2, #ffffff); transition: width .05s linear; }
+    .hold-btn { position: relative; z-index: 2; width: 100%; height: 100%; background: transparent; color: var(--white); font-size: 13px; font-weight: 950; letter-spacing: .25px; }
+    .hold-box.complete .hold-btn { color: #080b10; }
+
+    .letter-stage { position: fixed; inset: 0; z-index: 36; opacity: 0; pointer-events: none; transition: .45s ease; }
+    .letter-stage.show { opacity: 1; pointer-events: auto; }
+
+    .drop-zone {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 37;
+      width: min(76vw, 390px);
+      height: 188px;
+      transform: translate(-50%, -50%);
+      border-radius: 34px;
+      border: 1px dashed rgba(255,255,255,.28);
+      background: rgba(255,255,255,.035);
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,.42);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 2.1px;
+      text-transform: uppercase;
+      transition: .25s ease;
     }
 
-    .ending h4 {
-      max-width: 760px;
-      font-size: clamp(24px, 5vw, 52px);
-      font-weight: 400;
-      line-height: 1.5;
+    .drop-zone.active { border-color: rgba(255,255,255,.62); background: rgba(255,255,255,.085); transform: translate(-50%, -50%) scale(1.025); }
+
+    .envelope {
+      position: fixed;
+      left: 50%;
+      bottom: calc(82px + var(--safe-bottom));
+      z-index: 50;
+      width: 160px;
+      height: 104px;
+      transform: translateX(-50%);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.24);
+      background: linear-gradient(145deg, rgba(255,255,255,.18), rgba(255,255,255,.055));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 28px 90px rgba(0,0,0,.46), 0 0 44px rgba(255,255,255,.08);
+      cursor: grab;
+      touch-action: none;
+      animation: float 2.4s ease-in-out infinite;
+      will-change: left, top, transform;
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+    .envelope::before, .envelope::after { content: ""; position: absolute; inset: 0; border-radius: 18px; pointer-events: none; }
+    .envelope::before { clip-path: polygon(0 0, 50% 58%, 100% 0); background: rgba(255,255,255,.08); border-bottom: 1px solid rgba(255,255,255,.12); }
+    .envelope::after { clip-path: polygon(0 100%, 50% 42%, 100% 100%); background: rgba(255,255,255,.055); }
+    .envelope.dragging { animation: none; cursor: grabbing; z-index: 90; }
+
+    .final {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: block;
+      padding: calc(28px + var(--safe-top)) 24px calc(28px + var(--safe-bottom));
+      background: rgba(4,6,9,.64);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .65s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .final.show { opacity: 1; pointer-events: auto; }
+    .final::before, .final::after { content: ""; display: block; height: min(7vh, 44px); }
+    .final-card { width: min(92vw, 800px); margin: 0 auto; }
+    .final-note { margin-bottom: 26px; }
+
+    .typewriter-box {
+      width: 100%;
+      min-height: 176px;
+      margin: 26px auto 6px;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(255,255,255,.055);
+      padding: 22px 20px;
+      text-align: left;
+      overflow: visible;
     }
 
-    @media (max-width: 640px) {
-      .music-control {
-        top: 16px;
-        right: 16px;
-        padding: 10px 13px;
-        font-size: 12px;
-      }
+    .typed-text { color: rgba(255,255,255,.9); font-size: clamp(15px, 2.5vw, 18px); line-height: 1.82; font-weight: 640; letter-spacing: -.2px; white-space: pre-line; }
+    .typed-cursor { display: inline-block; width: 8px; height: 1.15em; margin-left: 4px; transform: translateY(3px); border-radius: 999px; background: rgba(255,255,255,.9); animation: blink .85s infinite; }
+    .restart-btn { margin-top: 22px; min-width: 144px; height: 48px; }
 
-      .title {
-        top: 86px;
-      }
+    .wash { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 42%, rgba(255,255,255,.12), transparent 34%), radial-gradient(circle at 50% 50%, rgba(255,255,255,.08), transparent 52%); transition: 1s ease; }
+    .wash.show { opacity: 1; }
 
-      .memory {
-        width: 94px;
-        height: 64px;
-      }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-9px); } }
+    @keyframes blink { 0%,45% { opacity: 1; } 46%,100% { opacity: 0; } }
 
-      .message {
-        bottom: 44px;
-      }
+    @media (max-width: 680px) {
+      body::before { background: linear-gradient(to bottom, rgba(255,255,255,.035), transparent 28%); }
+      .topbar { top: calc(10px + var(--safe-top)); left: 12px; right: 12px; gap: 8px; }
+      .brand, .music-btn { min-height: 36px; padding: 8px 11px; font-size: 10px; letter-spacing: .25px; }
+      .music-btn { max-width: 132px; overflow: hidden; text-overflow: ellipsis; }
+      .progress-pill { top: calc(55px + var(--safe-top)); width: calc(100vw - 28px); max-width: 360px; padding: 7px; }
+      .progress-track { height: 6px; }
+      .progress-text { margin-top: 6px; font-size: 8px; letter-spacing: 1px; }
 
-      .progress {
-        bottom: 16px;
-      }
+      .screen { display: flex; align-items: center; justify-content: center; padding: calc(100px + var(--safe-top)) 14px calc(20px + var(--safe-bottom)); }
+      .panel, .hold-card, .final-card { width: 100%; border-radius: 26px; padding: 22px 16px; box-shadow: 0 22px 70px rgba(0,0,0,.42); }
+      .eyebrow { margin-bottom: 12px; font-size: 8.5px; letter-spacing: 2.1px; }
+      h1, h2 { line-height: 1.08; }
+      h1 { font-size: clamp(31px, 10.2vw, 42px); letter-spacing: -1.25px; }
+      h2 { font-size: clamp(28px, 9vw, 38px); letter-spacing: -1.15px; }
+      p { font-size: 13.4px; line-height: 1.62; }
+
+      .workspace { padding: calc(104px + var(--safe-top)) 14px calc(72px + var(--safe-bottom)); }
+      .fog-wrap { width: calc(100vw - 28px); height: 64vh; min-height: 430px; border-radius: 28px; }
+      .fog-wrap::before { inset: 12px; border-radius: 22px; }
+      .fog-title { left: 16px; top: 16px; font-size: 9px; letter-spacing: 1.6px; }
+      .fog-subtitle { left: 16px; top: 35px; max-width: 240px; font-size: 9px; }
+      .truth-layer { padding: 88px 16px 72px; }
+      .truth-card { border-radius: 22px; padding: 18px 16px; }
+      .truth-kicker { font-size: 8px; letter-spacing: 1.5px; }
+      .truth-text { font-size: 16px; line-height: 1.55; }
+      .fog-hint { bottom: 14px; width: calc(100% - 28px); padding: 10px 12px; border-radius: 18px; font-size: 8.5px; letter-spacing: .9px; }
+      .mini-progress { left: 16px; right: 16px; bottom: 64px; }
+      .continue-btn { right: 16px; bottom: 15px; min-height: 40px; font-size: 11px; }
+
+      .message-slot { width: calc(100vw - 28px); min-height: 72px; }
+      .message-slot.letter-slot { top: calc(96px + var(--safe-top)); width: calc(100vw - 28px); min-height: 70px; }
+      .toast-inner { padding: 12px 14px; border-radius: 20px; }
+      .toast-text { font-size: 13.2px; line-height: 1.44; font-weight: 780; }
+      .pulse-orb { width: 68px; height: 68px; margin-bottom: 16px; }
+      .hold-box { height: 50px; margin-top: 18px; }
+      .hold-btn { font-size: 12px; }
+      .drop-zone { top: 46%; width: min(82vw, 318px); height: 154px; border-radius: 26px; font-size: 10px; letter-spacing: 1.7px; }
+      .envelope { width: 122px; height: 78px; bottom: calc(78px + var(--safe-bottom)); }
+      .final { padding: calc(14px + var(--safe-top)) 14px calc(16px + var(--safe-bottom)); }
+      .final::before, .final::after { height: 18px; }
+      .typewriter-box { min-height: 260px; margin-top: 20px; padding: 17px 15px; border-radius: 22px; }
+      .typed-text { font-size: 13.5px; line-height: 1.76; font-weight: 620; }
+    }
+
+    @media (max-width: 380px) {
+      .brand span:last-child { display: none; }
+      .brand { width: 38px; justify-content: center; padding: 0; }
+      .music-btn { font-size: 10px; }
+      h1 { font-size: 32px; }
+      p { font-size: 13.5px; }
+      .fog-wrap { min-height: 410px; }
+      .truth-text { font-size: 15px; }
     }
   </style>
 </head>
-<body>
-  <div class="grain"></div>
-  <div class="glow-line"></div>
 
-  <!-- Ganti src ini dengan file lagu kamu, contoh: lagu.mp3 -->
-  <audio id="song" loop autoplay>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="wash" id="wash"></div>
+
+  <audio id="song" loop>
     <source src="lagu.mp3" type="audio/mpeg" />
   </audio>
 
-  <button class="music-control" id="musicBtn">♫ Lagu otomatis</button>
+  <div class="topbar">
+    <div class="brand glass">
+      <span class="brand-dot"></span>
+      <span>Ruang Kita</span>
+    </div>
+    <button class="music-btn glass" id="musicBtn">♫ Lagu</button>
+  </div>
 
-  <section class="intro" id="intro">
-    <div class="intro-content">
-      <div class="small">a quiet goodbye</div>
-      <h1>One Last Sorry</h1>
-      <p>
-        Aku nggak ingin datang dengan banyak alasan.
-        Aku cuma ingin menyampaikan beberapa hal yang harusnya aku ucapkan lebih dulu.
-      </p>
-      <button class="start-btn" id="startBtn">Buka perlahan</button>
+  <div class="progress-pill glass" id="progressPill">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">mulai</div>
+  </div>
+
+  <section class="screen show" id="intro">
+    <div class="panel glass">
+      <div class="eyebrow">sebentar aja</div>
+      <h1>Aku mau jujur sebentar.</h1>
+      <button class="primary-btn" id="startBtn">Buka pelan-pelan</button>
     </div>
   </section>
 
-  <main class="main" id="main">
-    <div class="title">
-      <h2>Potongan surat yang belum sempat selesai.</h2>
-      <p>Klik tiap potongan surat yang melayang. Satu per satu, isinya adalah hal yang ingin aku akui tanpa membela diri.</p>
-    </div>
+  <section class="workspace" id="workspace">
+    <div class="fog-wrap glass" id="fogWrap">
+      <div class="fog-title">usap pelan-pelan</div>
+      <div class="fog-subtitle">bukan buat maksa kamu. cuma biar kamu tahu isi hatiku.</div>
 
-    <button class="memory" style="left: 10%; top: 38%; --rotate: -10deg; animation-delay: 0s;"></button>
-    <button class="memory" style="left: 73%; top: 33%; --rotate: 8deg; animation-delay: 0.8s;"></button>
-    <button class="memory" style="left: 23%; top: 68%; --rotate: 12deg; animation-delay: 1.5s;"></button>
-    <button class="memory" style="left: 62%; top: 70%; --rotate: -8deg; animation-delay: 2.1s;"></button>
-    <button class="memory" style="left: 43%; top: 49%; --rotate: 4deg; animation-delay: 2.8s;"></button>
+      <div class="truth-layer">
+        <div class="truth-card">
+          <div class="truth-kicker" id="truthKicker">bagian 1 / 5</div>
+          <div class="truth-text" id="truthText"></div>
+        </div>
+      </div>
 
-    <div class="message" id="message"></div>
-    <div class="progress" id="progress">0 / 5 dibuka</div>
-  </main>
-
-  <section class="letter-overlay" id="letterOverlay">
-    <div class="letter">
-      <h3>Untuk kamu, terakhir kalinya.</h3>
-      <p id="letterText"></p>
-      <button class="close-letter" id="closeLetter">Selesai</button>
+      <canvas id="fogCanvas"></canvas>
+      <div class="mini-progress"><div class="mini-fill" id="miniFill"></div></div>
+      <div class="fog-hint glass" id="fogHint">usap kacanya buat buka kalimatnya</div>
+      <button class="continue-btn" id="continueBtn">Lanjut</button>
     </div>
   </section>
 
-  <section class="ending" id="ending">
-    <h4>Aku benar-benar minta maaf.<br />Semoga setelah ini, kamu menemukan tenang yang lebih baik.</h4>
+  <div class="toast" id="toast">
+    <div class="toast-inner glass"><div class="toast-text" id="toastText"></div></div>
+  </div>
+
+  <section class="screen" id="holdStage">
+    <div class="hold-card glass">
+      <div class="eyebrow">sebentar lagi</div>
+      <div class="pulse-orb" id="orb"></div>
+      <p>Aku tahu kamu capek.
+Aku juga tahu hubungan ini mungkin berat buat kamu.
+
+Aku nggak mau maksa.
+Aku cuma mau belajar jadi orang yang lebih tenang buat kamu.</p>
+
+      <div class="message-slot compact" id="holdMessageSlot"></div>
+
+      <div class="hold-box" id="holdBox">
+        <div class="hold-fill" id="holdFill"></div>
+        <button class="hold-btn" id="holdBtn">Tahan sebentar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="letter-stage" id="letterStage">
+    <div class="message-slot letter-slot" id="letterMessageSlot"></div>
+    <div class="drop-zone" id="dropZone">taruh pesan di sini</div>
+    <div class="envelope" id="envelope"></div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card glass">
+      <div class="eyebrow">yang terakhir</div>
+      <h2>Aku masih mau kita.</h2>
+      <p class="final-note">Aku nggak minta semuanya langsung baik. Aku cuma mau kamu tahu, aku masih mau berusaha.</p>
+
+      <div class="typewriter-box">
+        <span class="typed-text" id="typedText"></span><span class="typed-cursor" id="typedCursor"></span>
+      </div>
+
+      <button class="restart-btn" id="restartBtn">Ulang</button>
+    </div>
   </section>
 
   <script>
-    const intro = document.getElementById('intro');
-    const main = document.getElementById('main');
-    const startBtn = document.getElementById('startBtn');
-    const musicBtn = document.getElementById('musicBtn');
-    const song = document.getElementById('song');
-    const messageBox = document.getElementById('message');
-    const memories = document.querySelectorAll('.memory');
-    const progress = document.getElementById('progress');
-    const letterOverlay = document.getElementById('letterOverlay');
-    const letterText = document.getElementById('letterText');
-    const closeLetter = document.getElementById('closeLetter');
-    const ending = document.getElementById('ending');
+    const bg = document.getElementById("bg");
+    const ctx = bg.getContext("2d");
+    const intro = document.getElementById("intro");
+    const startBtn = document.getElementById("startBtn");
+    const workspace = document.getElementById("workspace");
+    const progressPill = document.getElementById("progressPill");
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
+    const fogWrap = document.getElementById("fogWrap");
+    const fogCanvas = document.getElementById("fogCanvas");
+    const fogCtx = fogCanvas.getContext("2d", { willReadFrequently: true });
+    const fogHint = document.getElementById("fogHint");
+    const miniFill = document.getElementById("miniFill");
+    const continueBtn = document.getElementById("continueBtn");
+    const truthText = document.getElementById("truthText");
+    const truthKicker = document.getElementById("truthKicker");
+    const truthLayer = document.querySelector(".truth-layer");
+    const toast = document.getElementById("toast");
+    const toastText = document.getElementById("toastText");
+    const holdMessageSlot = document.getElementById("holdMessageSlot");
+    const letterMessageSlot = document.getElementById("letterMessageSlot");
+    const holdStage = document.getElementById("holdStage");
+    const orb = document.getElementById("orb");
+    const holdBox = document.getElementById("holdBox");
+    const holdFill = document.getElementById("holdFill");
+    const holdBtn = document.getElementById("holdBtn");
+    const letterStage = document.getElementById("letterStage");
+    const envelope = document.getElementById("envelope");
+    const dropZone = document.getElementById("dropZone");
+    const final = document.getElementById("final");
+    const restartBtn = document.getElementById("restartBtn");
+    const wash = document.getElementById("wash");
+    const typedText = document.getElementById("typedText");
+    const typedCursor = document.getElementById("typedCursor");
+    const musicBtn = document.getElementById("musicBtn");
+    const song = document.getElementById("song");
 
-    const messages = [
-      'Maaf karena aku belum bisa benar-benar mengerti luka yang kamu bawa. Aku sering melihat reaksimu sebagai masalah, padahal mungkin itu adalah cara hatimu bertahan.',
-      'Maaf karena aku terlalu memburu-buru kamu untuk lepas dari trauma itu. Aku baru sadar, niatku yang ingin semuanya membaik justru terasa seperti aku tidak memahami kamu.',
-      'Maaf karena aku mengulang kesalahan yang sama. Aku tahu kata maaf jadi terasa kecil kalau setelahnya aku tetap membuatmu terluka lagi.',
-      'Sekarang aku mengerti bahwa hubungan bukan cuma tentang cinta. Ada dua kepala, dua hati, dua luka, dan dua cara bertahan yang harus sama-sama dipahami.',
-      'Aku nggak menulis ini untuk memaksa kamu kembali. Aku hanya ingin kamu tahu bahwa akhirnya aku sadar: mencintai seseorang juga berarti sabar memahami proses sembuhnya, bukan memaksa dia cepat baik-baik saja.'
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let stage = "intro";
+    let skyDots = [];
+    let typingTimer = null;
+    let fogPointerDown = false;
+    let activeFogPointer = null;
+    let currentPart = 0;
+    let revealed = 0;
+    let holdTimer = null;
+    let holdProgress = 0;
+    let dragging = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let activePointerId = null;
+
+    const parts = [
+      "Aku salah karena nyindir kamu.\nHarusnya aku ngomong jujur, bukan bikin kamu merasa diserang.",
+      "Aku sakit hati karena rasanya effort kamu ke aku beda.\nAku tahu itu bikin aku kepikiran, tapi caraku menyampaikan salah.",
+      "Aku juga sadar kamu capek.\nMungkin kamu bukan nggak peduli, kamu cuma lagi nggak punya banyak tenaga.",
+      "Aku nggak mau maksa kamu jadi seperti dulu.\nAku cuma mau kita jalanin ini pelan-pelan.",
+      "Kamu pernah bilang aku cari orang lain aja.\nTapi buat aku, kamu bukan orang yang salah. Aku masih mau kamu."
     ];
 
-    const finalLetter = `Aku nggak tahu apakah tulisan ini masih pantas kamu baca sampai selesai.
+    const finalMessage = `Aku minta maaf ya.
 
-Tapi untuk terakhir kalinya, aku ingin minta maaf dengan cara yang lebih tenang, lebih jujur, dan tanpa membela diriku sendiri.
+Kemarin aku salah.
+Aku nyindir soal effort kamu ke masa lalu kamu, padahal harusnya aku ngomong baik-baik.
 
-Aku sadar, salah satu kesalahanku adalah aku belum bisa benar-benar mengerti trauma yang kamu punya. Aku belum cukup peka untuk memahami bahwa anxiety kamu bukan sesuatu yang bisa dianggap berlebihan, bukan sesuatu yang bisa selesai hanya karena aku bilang, “tenang aja”.
+Aku sakit hati karena rasanya effort kamu ke aku berbeda.
+Tapi aku sadar, bukan berarti aku boleh nyakitin kamu lewat kata-kataku.
 
-Aku juga sadar, aku pernah terlalu memburu-buru kamu untuk lepas dari rasa trauma itu. Mungkin di pikiranku, aku hanya ingin hubungan ini terasa lebih ringan, lebih bebas, dan tidak terus dibayangi luka lama. Tapi sekarang aku paham, caraku waktu itu salah.
+Aku tahu kamu capek.
+Mungkin kamu bukan nggak peduli.
+Mungkin kamu cuma lagi nggak punya tenaga buat menjalani hubungan ini.
 
-Niatku mungkin ingin semuanya membaik, tapi yang sampai ke kamu justru bisa terasa seperti tekanan. Seolah-olah aku meminta kamu cepat sembuh. Seolah-olah aku tidak sabar dengan prosesmu. Seolah-olah luka yang kamu bawa adalah sesuatu yang harus segera kamu tinggalkan demi hubungan ini.
+Maaf kalau aku malah bikin kamu makin berat.
+Maaf kalau kata-kataku bikin kamu merasa kurang atau nggak cukup.
+Padahal kamu tetap berarti buat aku.
 
-Aku sering gagal membaca rasa takutmu. Aku sering terlambat sadar bahwa di balik sikapmu, di balik diam, marah, atau cemasmu, mungkin ada luka lama yang sedang berusaha kamu lindungi.
+Aku nggak mau maksa kamu jadi seperti masa lalu kamu.
+Aku juga nggak mau nuntut kamu langsung berubah.
+Aku cuma mau kita pelan-pelan.
 
-Dan yang paling aku sesali, aku mengulang kesalahan yang itu-itu lagi.
+Kamu pernah bilang aku cari orang lain aja.
+Kamu juga pernah bilang mungkin aku salah orang buat dicintai.
 
-Aku tahu kata maaf bisa terdengar kosong kalau setelahnya aku tetap membuat luka yang sama. Aku tahu mungkin kamu lelah, bukan karena kamu tidak sayang, tapi karena kamu terus berharap aku mengerti tanpa harus selalu dijelaskan dari awal lagi.
+Tapi buat aku, kamu bukan orang yang salah.
+Aku masih sayang.
+Aku masih mau belajar memahami kamu.
+Aku masih mau memperbaiki caraku bicara dan caraku mencintai kamu.
 
-Dulu aku sempat berpikir, kenapa kita tidak bisa menjalani hubungan ini dengan lebih lepas? Kenapa kita tidak bisa sama-sama melepaskan masa lalu ketika sudah ada di hubungan yang baru?
+Aku nggak minta semuanya langsung baik hari ini.
+Aku cuma berharap kamu nggak buru-buru nyerah sama kita.
 
-Tapi sekarang aku paham.
+Kalau kamu capek, kita pelan-pelan.
+Kalau kamu belum punya tenaga, aku nggak akan maksa kamu lari.
 
-Melepas trauma tidak sesederhana masuk ke hubungan baru. Luka tidak langsung hilang hanya karena ada orang yang mencintai kita. Kadang, justru di dalam hubungan, luka itu muncul lagi karena ada rasa takut kehilangan, rasa takut disakiti, atau rasa takut kejadian yang sama terulang kembali.
+Aku cuma mau tetap ada, selama kamu masih izinin.
+Karena aku masih mau kamu.
+Aku masih mau kita.
+Dan aku masih mau pertahanin hubungan ini.`;
 
-Sekarang aku semakin mengerti bahwa hubungan bukan cuma tentang saling cinta.
+    function resizeCanvas() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      bg.width = width * window.devicePixelRatio;
+      bg.height = height * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
 
-Hubungan juga tentang dua kepala yang mencoba saling mendengar. Dua hati yang punya cara bertahan masing-masing. Dua manusia yang harus belajar memahami hal-hal yang bahkan kadang sulit dijelaskan oleh pasangannya sendiri.
+    function createSky() {
+      skyDots = [];
+      const total = width < 680 ? 70 : 120;
+      for (let i = 0; i < total; i++) {
+        skyDots.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 1.4 + .25, a: Math.random() * .34 + .12, p: Math.random() * 6.28, s: Math.random() * .01 + .003 });
+      }
+    }
 
-Aku minta maaf karena aku belum bisa menjadi orang yang cukup sabar untuk memahami bagian itu dari kamu.
+    function drawSky() {
+      ctx.clearRect(0, 0, width, height);
+      const g = ctx.createRadialGradient(width * .5, height * .18, 0, width * .5, height * .18, width * .58);
+      g.addColorStop(0, "rgba(255,255,255,.08)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, width, height);
 
-Maaf karena aku membuat kamu merasa tidak dipahami ketika kamu justru sedang butuh dimengerti. Maaf karena aku pernah membuat proses sembuhmu terasa seperti tuntutan, bukan ruang aman.
+      skyDots.forEach((d) => {
+        d.p += d.s;
+        const alpha = d.a + Math.sin(d.p) * .09;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(drawSky);
+    }
 
-Maaf karena aku pernah membuat kamu merasa tidak dimengerti.
-Maaf karena aku pernah membuat rasa cemasmu terasa seperti beban.
-Maaf karena aku terlambat sadar bahwa mencintai kamu seharusnya juga berarti belajar memahami lukamu, bukan hanya menikmati baikmu.
-
-Aku tidak menulis ini untuk memaksa kamu kembali.
-Aku juga tidak ingin membuat kamu merasa bersalah karena memilih pergi.
-
-Aku cuma ingin kamu tahu bahwa sekarang aku paham, meskipun mungkin pemahaman ini datang terlambat.
-
-Terima kasih karena pernah bertahan sejauh itu.
-Terima kasih karena pernah mencoba menjelaskan hal-hal yang mungkin berat untuk kamu jelaskan.
-Terima kasih karena pernah mencintaiku dengan caramu.
-
-Kalau setelah ini jalan kita memang harus berbeda, aku akan belajar menerima itu.
-
-Tapi dari hatiku yang paling jujur,
-aku benar-benar minta maaf.`;
-
-    let openedCount = 0;
-    let typingIndex = 0;
-    let typingTimer = null;
+    function setProgress(percent, text) {
+      progressFill.style.width = percent + "%";
+      progressText.textContent = text;
+    }
 
     function playSong() {
-      song.volume = 0.72;
-      song.play()
-        .then(() => {
-          musicBtn.textContent = '♫ Lagu diputar';
-        })
-        .catch(() => {
-          musicBtn.textContent = '♫ Klik jika lagu belum bunyi';
-        });
+      song.volume = .5;
+      song.play().then(() => musicBtn.textContent = "♫ Nyala").catch(() => musicBtn.textContent = "♫ Lagu");
     }
 
-    window.addEventListener('load', () => {
-      playSong();
-    });
-
-    function showMessage(text) {
-      messageBox.textContent = text;
-      messageBox.classList.add('show');
-      clearTimeout(messageBox.hideTimer);
-      messageBox.hideTimer = setTimeout(() => {
-        messageBox.classList.remove('show');
-      }, 8500);
-    }
-
-    function typeLetter() {
-      letterText.textContent = '';
-      typingIndex = 0;
-      clearInterval(typingTimer);
-      typingTimer = setInterval(() => {
-        letterText.textContent += finalLetter.charAt(typingIndex);
-        typingIndex++;
-        if (typingIndex >= finalLetter.length) {
-          clearInterval(typingTimer);
-        }
-      }, 45);
-    }
-
-    function showLetter() {
+    function setPart(index) {
+      currentPart = index;
+      revealed = 0;
+      truthText.classList.add("fade");
       setTimeout(() => {
-        letterOverlay.classList.add('show');
-        typeLetter();
-      }, 9000);
+        truthKicker.textContent = `bagian ${currentPart + 1} / ${parts.length}`;
+        truthText.textContent = parts[currentPart];
+        truthText.classList.remove("fade");
+      }, 170);
+      miniFill.style.width = "0%";
+      continueBtn.classList.remove("show");
+      fogHint.classList.remove("hide");
+      truthLayer.classList.remove("visible");
+      setTimeout(drawFog, 180);
+      setProgress(8 + currentPart * 13, `bagian ${currentPart + 1}`);
     }
 
-    startBtn.addEventListener('click', () => {
-      intro.classList.add('hidden');
-      main.classList.add('show');
-      playSong();
-    });
+    function resizeFogCanvas() {
+      const rect = fogWrap.getBoundingClientRect();
+      fogCanvas.width = Math.floor(rect.width * window.devicePixelRatio);
+      fogCanvas.height = Math.floor(rect.height * window.devicePixelRatio);
+      fogCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      drawFog();
+    }
 
-    musicBtn.addEventListener('click', () => {
-      if (song.paused) {
-        playSong();
-      } else {
-        song.pause();
-        musicBtn.textContent = '♫ Putar lagu';
+    function drawFog() {
+      const rect = fogWrap.getBoundingClientRect();
+      fogCtx.globalCompositeOperation = "source-over";
+      fogCtx.clearRect(0, 0, rect.width, rect.height);
+      const grad = fogCtx.createLinearGradient(0, 0, rect.width, rect.height);
+      grad.addColorStop(0, "rgba(235,235,230,1)");
+      grad.addColorStop(.45, "rgba(162,168,174,1)");
+      grad.addColorStop(1, "rgba(245,245,240,1)");
+      fogCtx.fillStyle = grad;
+      fogCtx.fillRect(0, 0, rect.width, rect.height);
+
+      for (let i = 0; i < 58; i++) {
+        fogCtx.beginPath();
+        fogCtx.arc(Math.random() * rect.width, Math.random() * rect.height, Math.random() * 100 + 46, 0, Math.PI * 2);
+        fogCtx.fillStyle = `rgba(255,255,255,${Math.random() * .18 + .08})`;
+        fogCtx.fill();
       }
-    });
 
-    memories.forEach((memory, index) => {
-      memory.addEventListener('click', () => {
-        if (memory.classList.contains('clicked')) return;
-        memory.classList.add('clicked');
-        showMessage(messages[index]);
-        openedCount++;
-        progress.textContent = `${openedCount} / ${memories.length} dibuka`;
+      for (let i = 0; i < 26; i++) {
+        fogCtx.beginPath();
+        fogCtx.arc(Math.random() * rect.width, Math.random() * rect.height, Math.random() * 70 + 28, 0, Math.PI * 2);
+        fogCtx.fillStyle = `rgba(70,75,82,${Math.random() * .08 + .035})`;
+        fogCtx.fill();
+      }
 
-        if (openedCount === memories.length) {
-          showLetter();
+      fogCtx.fillStyle = "rgba(0,0,0,.22)";
+      fogCtx.font = "900 12px system-ui, sans-serif";
+      fogCtx.letterSpacing = "2px";
+      fogCtx.textAlign = "center";
+      fogCtx.fillText("USAP DI SINI", rect.width / 2, rect.height / 2);
+    }
+
+    function scratchFog(clientX, clientY) {
+      const rect = fogCanvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const radius = width < 680 ? 34 : 44;
+
+      fogCtx.globalCompositeOperation = "destination-out";
+      const g = fogCtx.createRadialGradient(x, y, 0, x, y, radius);
+      g.addColorStop(0, "rgba(0,0,0,1)");
+      g.addColorStop(.7, "rgba(0,0,0,.72)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      fogCtx.fillStyle = g;
+      fogCtx.beginPath();
+      fogCtx.arc(x, y, radius, 0, Math.PI * 2);
+      fogCtx.fill();
+      updateRevealProgress();
+    }
+
+    function updateRevealProgress() {
+      const w = fogCanvas.width;
+      const h = fogCanvas.height;
+      const sampleStep = 12;
+      const data = fogCtx.getImageData(0, 0, w, h).data;
+      let transparent = 0;
+      let total = 0;
+      for (let y = 0; y < h; y += sampleStep) {
+        for (let x = 0; x < w; x += sampleStep) {
+          const alpha = data[(y * w + x) * 4 + 3];
+          if (alpha < 40) transparent++;
+          total++;
         }
-      });
+      }
+      revealed = Math.min(100, Math.round((transparent / total) * 100));
+      miniFill.style.width = Math.min(100, revealed * 1.35) + "%";
+
+      if (revealed > 3) {
+        truthLayer.classList.add("visible");
+      }
+
+      if (revealed > 38) {
+        fogHint.classList.add("hide");
+        continueBtn.classList.add("show");
+        setProgress(8 + (currentPart + 1) * 13, `${currentPart + 1} / ${parts.length} terbuka`);
+      }
+    }
+
+    function startFlow() {
+      stage = "fog";
+      intro.classList.remove("show");
+      progressPill.classList.add("show");
+      workspace.classList.add("show");
+      setTimeout(() => {
+        resizeFogCanvas();
+        setPart(0);
+      }, 120);
+      playSong();
+    }
+
+    function nextPart() {
+      if (currentPart < parts.length - 1) {
+        setPart(currentPart + 1);
+      } else {
+        finishFog();
+      }
+    }
+
+    function finishFog() {
+      stage = "hold";
+      setProgress(78, "sudah lebih jelas");
+      workspace.classList.remove("show");
+      setTimeout(() => holdStage.classList.add("show"), 380);
+    }
+
+    function showToast(text, duration = 5200) {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        const slot = stage === "letter" ? letterMessageSlot : holdMessageSlot;
+        slot.appendChild(toast);
+        toastText.textContent = text;
+        toast.classList.add("show");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove("show"), duration);
+      }, 80);
+    }
+
+    function startHold() {
+      if (stage !== "hold") return;
+      holdProgress = 0;
+      holdFill.style.width = "0%";
+      clearInterval(holdTimer);
+      holdTimer = setInterval(() => {
+        holdProgress += 3.1;
+        holdFill.style.width = Math.min(holdProgress, 100) + "%";
+        if (holdProgress >= 100) {
+          clearInterval(holdTimer);
+          completeHold();
+        }
+      }, 48);
+    }
+
+    function stopHold() {
+      if (stage !== "hold") return;
+      if (holdProgress >= 100) return;
+      clearInterval(holdTimer);
+      holdProgress = 0;
+      holdFill.style.width = "0%";
+    }
+
+    function completeHold() {
+      stage = "letter";
+      orb.classList.add("on");
+      wash.classList.add("show");
+      holdBox.classList.add("complete");
+      holdBtn.textContent = "pelan-pelan ya.";
+      setProgress(88, "yang terakhir");
+      setTimeout(() => {
+        holdStage.classList.remove("show");
+        letterStage.classList.add("show");
+        showToast("Kalau kamu siap, taruh pesannya di tengah ya.", 5200);
+      }, 1050);
+    }
+
+    function pointInside(rect, x, y) { return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom; }
+    function isElementCenterInside(el, target) {
+      const rect = el.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      return pointInside(target.getBoundingClientRect(), x, y);
+    }
+
+    function startDrag(el, clientX, clientY, pointerId) {
+      if (stage !== "letter" || el !== envelope) return;
+      dragging = el;
+      activePointerId = pointerId;
+      const rect = dragging.getBoundingClientRect();
+      dragOffsetX = clientX - rect.left;
+      dragOffsetY = clientY - rect.top;
+      dragging.classList.add("dragging");
+    }
+
+    function moveDrag(clientX, clientY) {
+      if (!dragging) return;
+      dragging.style.left = `${clientX - dragOffsetX + dragging.offsetWidth / 2}px`;
+      dragging.style.top = `${clientY - dragOffsetY + dragging.offsetHeight / 2}px`;
+      dragging.style.bottom = "auto";
+      dragging.style.transform = "translate(-50%, -50%) scale(1.04)";
+      dropZone.classList.toggle("active", isElementCenterInside(envelope, dropZone));
+    }
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging.classList.remove("dragging");
+      dropZone.classList.remove("active");
+      if (isElementCenterInside(envelope, dropZone)) openFinal();
+      else {
+        envelope.style.left = "50%";
+        envelope.style.top = "";
+        envelope.style.bottom = "calc(82px + var(--safe-bottom))";
+        envelope.style.transform = "translateX(-50%)";
+      }
+      dragging = null;
+      activePointerId = null;
+    }
+
+    function typeFinalMessage() {
+      clearInterval(typingTimer);
+      typedText.textContent = "";
+      typedCursor.style.display = "inline-block";
+      let index = 0;
+      typingTimer = setInterval(() => {
+        typedText.textContent += finalMessage.charAt(index);
+        index += 1;
+        if (index >= finalMessage.length) {
+          clearInterval(typingTimer);
+          setTimeout(() => typedCursor.style.display = "none", 900);
+        }
+      }, 34);
+    }
+
+    function openFinal() {
+      stage = "final";
+      setProgress(100, "selesai");
+      letterStage.classList.remove("show");
+      toast.classList.remove("show");
+      setTimeout(() => {
+        final.classList.add("show");
+        final.scrollTop = 0;
+        typeFinalMessage();
+      }, 260);
+    }
+
+    function resetAll() {
+      stage = "fog";
+      currentPart = 0;
+      holdProgress = 0;
+      dragging = null;
+      activePointerId = null;
+      final.classList.remove("show");
+      clearInterval(typingTimer);
+      typedText.textContent = "";
+      typedCursor.style.display = "inline-block";
+      holdStage.classList.remove("show");
+      letterStage.classList.remove("show");
+      workspace.classList.add("show");
+      orb.classList.remove("on");
+      wash.classList.remove("show");
+      holdBox.classList.remove("complete");
+      holdFill.style.width = "0%";
+      holdBtn.textContent = "Tahan sebentar";
+      envelope.style.left = "50%";
+      envelope.style.top = "";
+      envelope.style.bottom = "calc(82px + var(--safe-bottom))";
+      envelope.style.transform = "translateX(-50%)";
+      setPart(0);
+    }
+
+    startBtn.addEventListener("click", startFlow);
+    continueBtn.addEventListener("click", nextPart);
+    restartBtn.addEventListener("click", resetAll);
+
+    fogCanvas.addEventListener("pointerdown", (e) => {
+      if (stage !== "fog") return;
+      e.preventDefault();
+      fogCanvas.setPointerCapture(e.pointerId);
+      fogPointerDown = true;
+      activeFogPointer = e.pointerId;
+      scratchFog(e.clientX, e.clientY);
     });
 
-    closeLetter.addEventListener('click', () => {
-      letterOverlay.classList.remove('show');
-      ending.classList.add('show');
+    fogCanvas.addEventListener("pointermove", (e) => {
+      if (!fogPointerDown || activeFogPointer !== e.pointerId) return;
+      e.preventDefault();
+      scratchFog(e.clientX, e.clientY);
     });
+
+    function stopFogPointer() { fogPointerDown = false; activeFogPointer = null; }
+    fogCanvas.addEventListener("pointerup", stopFogPointer);
+    fogCanvas.addEventListener("pointercancel", stopFogPointer);
+
+    envelope.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      envelope.setPointerCapture(e.pointerId);
+      startDrag(envelope, e.clientX, e.clientY, e.pointerId);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      moveDrag(e.clientX, e.clientY);
+    });
+
+    window.addEventListener("pointerup", (e) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      endDrag();
+    });
+
+    window.addEventListener("pointercancel", endDrag);
+
+    holdBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); startHold(); });
+    holdBtn.addEventListener("pointerup", stopHold);
+    holdBtn.addEventListener("pointerleave", stopHold);
+    holdBtn.addEventListener("pointercancel", stopHold);
+
+    musicBtn.addEventListener("click", () => {
+      if (song.paused) playSong();
+      else { song.pause(); musicBtn.textContent = "♫ Lagu"; }
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      document.body.style.setProperty("--mx", e.clientX + "px");
+      document.body.style.setProperty("--my", e.clientY + "px");
+    });
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      createSky();
+      if (stage === "fog") resizeFogCanvas();
+    });
+
+    resizeCanvas();
+    createSky();
+    drawSky();
   </script>
 </body>
 </html>
