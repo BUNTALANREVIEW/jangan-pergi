@@ -697,52 +697,18 @@ Aku cuma mau belajar jadi orang yang lebih tenang buat kamu.</p>
     let dragOffsetY = 0;
     let activePointerId = null;
 
-    const parts = [
-      "Aku salah karena nyindir kamu.\nHarusnya aku ngomong jujur, bukan bikin kamu merasa diserang.",
-      "Aku sakit hati karena rasanya effort kamu ke aku beda.\nAku tahu itu bikin aku kepikiran, tapi caraku menyampaikan salah.",
-      "Aku juga sadar kamu capek.\nMungkin kamu bukan nggak peduli, kamu cuma lagi nggak punya banyak tenaga.",
-      "Aku nggak mau maksa kamu jadi seperti dulu.\nAku cuma mau kita jalanin ini pelan-pelan.",
-      "Kamu pernah bilang aku cari orang lain aja.\nTapi buat aku, kamu bukan orang yang salah. Aku masih mau kamu."
-    ];
+const parts = [
+  "Bibby, aku mau ngomong serius nih sama kamu, tapi santai aja ya, dengerin aku dulu.",
+  "Aku cowok kamu, dan ke depannya aku pengin kamu lebih nurut sama aku, tentunya dalam hal-hal yang baik lah.",
+  "Bukan berarti aku mau ngekang kamu, aku cuma pengin kita punya arah yang jelas dan kamu percaya sama aku.",
+  "Soal kemarin aku emosi dan bawa-bawa cewek lain, itu karena aku gengsi dan takut kehilangan kamu. Aku minta maaf, aku nggak pernah mau ninggalin kamu.",
+  "Intinya, aku pengin kamu nurut sama aku. Kalau aku bilang A, ya ikutin, nggak usah ngebantah atau ngeyel terus, karena aku lakuin itu demi kita.",
+  "Aku sayang banget sama kamu, makanya aku pengin kamu percaya dan nurut sama aku, biar kita nggak usah drama lagi, ya sayang."
+];
 
-    const finalMessage = `Aku minta maaf ya.
+const finalMessage = "Bibby, aku mau ngomong serius nih sama kamu, tapi santai aja ya. Aku cowok kamu, dan ke depannya aku pengin kamu lebih nurut sama aku, tentunya dalam hal-hal yang baik. Bukan berarti aku mau ngekang kamu, aku cuma pengin kita punya arah yang jelas dan kamu percaya sama aku. Soal kemarin aku emosi dan bawa-bawa cewek lain, itu karena aku gengsi dan takut kehilangan kamu. Aku minta maaf, aku nggak pernah mau ninggalin kamu. Intinya, aku pengin kamu nurut sama aku. Kalau aku bilang A, ya ikutin, nggak usah ngebantah atau ngeyel terus, karena aku lakuin itu demi kita. Aku sayang banget sama kamu, makanya aku pengin kamu percaya dan nurut sama aku, biar kita nggak usah drama lagi, ya sayang.";
 
-Kemarin aku salah.
-Aku nyindir soal effort kamu ke masa lalu kamu, padahal harusnya aku ngomong baik-baik.
-
-Aku sakit hati karena rasanya effort kamu ke aku berbeda.
-Tapi aku sadar, bukan berarti aku boleh nyakitin kamu lewat kata-kataku.
-
-Aku tahu kamu capek.
-Mungkin kamu bukan nggak peduli.
-Mungkin kamu cuma lagi nggak punya tenaga buat menjalani hubungan ini.
-
-Maaf kalau aku malah bikin kamu makin berat.
-Maaf kalau kata-kataku bikin kamu merasa kurang atau nggak cukup.
-Padahal kamu tetap berarti buat aku.
-
-Aku nggak mau maksa kamu jadi seperti masa lalu kamu.
-Aku juga nggak mau nuntut kamu langsung berubah.
-Aku cuma mau kita pelan-pelan.
-
-Kamu pernah bilang aku cari orang lain aja.
-Kamu juga pernah bilang mungkin aku salah orang buat dicintai.
-
-Tapi buat aku, kamu bukan orang yang salah.
-Aku masih sayang.
-Aku masih mau belajar memahami kamu.
-Aku masih mau memperbaiki caraku bicara dan caraku mencintai kamu.
-
-Aku nggak minta semuanya langsung baik hari ini.
-Aku cuma berharap kamu nggak buru-buru nyerah sama kita.
-
-Kalau kamu capek, kita pelan-pelan.
-Kalau kamu belum punya tenaga, aku nggak akan maksa kamu lari.
-
-Aku cuma mau tetap ada, selama kamu masih izinin.
-Karena aku masih mau kamu.
-Aku masih mau kita.
-Dan aku masih mau pertahanin hubungan ini.`;
+console.log(finalMessage);
 
     function resizeCanvas() {
       width = window.innerWidth;
